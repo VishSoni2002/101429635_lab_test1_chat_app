@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Room</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const user = JSON.parse(localStorage.getItem('user'));
+
+        if (!user) {
+            window.location.href = 'index.html';
+        }
+
+        function joinRoom() {
+            const room = document.getElementById("room").value;
+            localStorage.setItem('room', room);
+            socket.emit('joinRoom', { username: user.username, room });
+        }
+
+        function sendMessage() {
+            const room = localStorage.getItem('room');
+            const message = document.getElementById("message").value;
+            socket.emit('chatMessage', { username: user.username, room, message });
+        }
+
+        function leaveRoom() {
+            const room = localStorage.getItem('room');
+            socket.emit('leaveRoom', { username: user.username, room });
+            localStorage.removeItem('room');
+            window.location.href = 'chat.html';
+        }
+
+        socket.on('message', ({ username, message }) => {
+            const messages = document.getElementById("messages");
+            messages.innerHTML += `<p><strong>${username}:</strong> ${message}</p>`;
+        });
+    </script>
+</head>
+<body>
+    <h2>Chat Room</h2>
+    <input type="text" id="room" placeholder="Enter Room">
+    <button onclick="joinRoom()">Join Room</button>
+    <br><br>
+    <input type="text" id="message" placeholder="Type a message">
+    <button onclick="sendMessage()">Send</button>
+    <button onclick="leaveRoom()">Leave Room</button>
+    <div id="messages"></div>
+</body>
+</html>
